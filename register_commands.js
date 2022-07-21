@@ -4,19 +4,19 @@ import { print, TEXT_LEVEL } from "./print.js";
 import "dotenv/config";
 import fs from "fs";
 
+import * as seg from "./constants.js";
+
 //Constants
-const DELETE_COMMANDS_ON_UPDATE = false; //Used when removing commands.
-const COMMAND_LOCATION = "./commands";
 
 async function getCommands() {
 	//Get commands
 	const commandList = [];
-	const commandFiles = fs.readdirSync(COMMAND_LOCATION)
+	const commandFiles = fs.readdirSync(seg.COMMAND_LOCATION)
 		.filter(file => file.endsWith(".cjs"));
 
 	for (const file of commandFiles) {
 		print("Loading command: " + file, TEXT_LEVEL.DEBUG);
-		const command = await import(COMMAND_LOCATION + "/" + file);
+		const command = await import(seg.COMMAND_LOCATION + "/" + file);
 		commandList.push(command.data.toJSON());
 	}
 	return commandList;
@@ -29,7 +29,7 @@ const rest = new REST({ version: "9" }).setToken(process.env.DISCORD_TOKEN);
 async function updateCommands() {
 	const commandList = await getCommands();
 
-	if (DELETE_COMMANDS_ON_UPDATE)
+	if (seg.DELETE_COMMANDS_ON_UPDATE)
 		deleteCommands();
 
 	//Add Global commands

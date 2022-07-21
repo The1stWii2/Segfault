@@ -4,11 +4,7 @@ import { print, TEXT_LEVEL } from "./print.js";
 import "dotenv/config";
 import fs from "fs";
 
-//Constants
-const SLASH_COMMAND_REPLY = 2;
-const SKIP_REGISTERING = false;
-const HASH_LOCATION = "./command_hash";
-const COMMAND_LOCATION = "./commands";
+import * as seg from "./constants.js";
 
 //Start up
 print("\n\n\n");
@@ -17,12 +13,12 @@ print("Starting...", TEXT_LEVEL.SUCCESS);
 async function getCommands() {
 	//Get commands
 	const commandList = new Collection();
-	const commandFiles = fs.readdirSync(COMMAND_LOCATION)
+	const commandFiles = fs.readdirSync(seg.COMMAND_LOCATION)
 		.filter(file => file.endsWith(".cjs"));
 
 	for (const file of commandFiles) {
 		print("Loading command: " + file, TEXT_LEVEL.DEBUG);
-		const command = await import(COMMAND_LOCATION + "/" + file);
+		const command = await import(seg.COMMAND_LOCATION + "/" + file);
 		commandList.set(command.data.name, command);
 	}
 	return commandList;
@@ -41,7 +37,7 @@ async function Main() {
 
 	let prevHash = 0;
 	try {
-		prevHash = await fs.readFileSync(HASH_LOCATION);
+		prevHash = await fs.readFileSync(seg.HASH_LOCATION);
 		print("Previous hash for commands is: " + prevHash.readBigInt64LE(0), TEXT_LEVEL.DEBUG);
 	} catch (e) {
 		if (e.code == "ENOENT") { //Catch No-such-file exceptions
@@ -53,7 +49,7 @@ async function Main() {
 
 	if (prevHash == 0 || currentHash.readBigInt64LE(0) != prevHash.readBigInt64LE(0)) {
 		//Register Guild commands
-		if (!SKIP_REGISTERING) {
+		if (!seg.SKIP_REGISTERING) {
 			print("Commands updated, refreshing Guild commands...", TEXT_LEVEL.WARN);
 			print("Command registration may be delayed.", TEXT_LEVEL.INFO);
 			await import("./register_commands.js");
@@ -63,7 +59,7 @@ async function Main() {
 
 		//Update Hash
 		try {
-			fs.writeFileSync(HASH_LOCATION, currentHash);
+			fs.writeFileSync(seg.HASH_LOCATION, currentHash);
 		} catch (e) {
 			print("Failed to write hash!", TEXT_LEVEL.ERROR, true, false);
 			throw e;
@@ -80,7 +76,7 @@ async function Main() {
 
 
 	client.on("interactionCreate", async interaction => {
-		if (interaction.type != SLASH_COMMAND_REPLY) return;
+		if (interaction.type != seg.SLASH_COMMAND_REPLY) return;
 
 		print("Received interaction: " + String(interaction), TEXT_LEVEL.DEBUG);
 

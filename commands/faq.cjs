@@ -6,13 +6,13 @@ const COMMAND_LOCATION = "./commands";
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("faq")
-		.setDescription("Recalls answers to commonly asked questions.")
+		.setDescription("Recalls answers to commonly asked questions")
 		.addStringOption((option) =>
 			option.setName("question")
-				.setDescription("Which question to answer.")
+				.setDescription("Which question to answer")
 				.addChoices(
 					...getQuestions()
-				),
+				)
 		)
 };
 

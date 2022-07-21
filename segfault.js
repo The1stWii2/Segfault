@@ -3,11 +3,6 @@ import { computeMetaHash } from "./meta_hash.js";
 import { print, TEXT_LEVEL } from "./print.js";
 import "dotenv/config";
 import fs from "fs";
-import path from "path";
-
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 //Constants
 const SLASH_COMMAND_REPLY = 2;
@@ -41,7 +36,7 @@ async function Main() {
 	client.commands = await getCommands();
 
 	//Check whether we need to update commands
-	const currentHash = await computeMetaHash(path.join(__dirname, "commands"));
+	const currentHash = await computeMetaHash("./commands");
 	print("Current hash for commands is: " + currentHash.readBigInt64LE(0), TEXT_LEVEL.DEBUG);
 
 	let prevHash = 0;

@@ -3,11 +3,6 @@ import { Routes } from "discord-api-types/v9";
 import { print, TEXT_LEVEL } from "./print.js";
 import "dotenv/config";
 import fs from "fs";
-import path from "path";
-
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 //Constants
 const DELETE_COMMANDS_ON_UPDATE = false; //Used when removing commands.

@@ -47,9 +47,9 @@ async function Main() {
 		}
 	}
 
-	if (prevHash == 0 || currentHash.readBigInt64LE(0) != prevHash.readBigInt64LE(0)) {
+	if (seg.SKIP_REGISTERING == -1 || prevHash == 0 || currentHash.readBigInt64LE(0) != prevHash.readBigInt64LE(0)) {
 		//Register Guild commands
-		if (!seg.SKIP_REGISTERING) {
+		if (seg.SKIP_REGISTERING != 1) {
 			print("Commands updated, refreshing Guild commands...", TEXT_LEVEL.WARN);
 			print("Command registration may be delayed.", TEXT_LEVEL.INFO);
 			await import("./register_commands.js");
@@ -85,7 +85,7 @@ async function Main() {
 		if (!command) return;
 
 		try {
-			await command.execute(interaction);
+			await command.execute(interaction, client);
 		} catch (error) {
 			print(error, TEXT_LEVEL.ERROR, true);
 			await interaction.reply({ content: "There was an error while executing this command!", ephemeral: true });

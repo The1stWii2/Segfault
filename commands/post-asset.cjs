@@ -2,7 +2,7 @@ const discordJS = require("discord.js");
 require("dotenv").config();
 
 const ALLOWED_ROLES = ["324957515051696128", "876331576567406632"];
-const WEBHOOKS = [process.env.WEBHOOK_MODELS_AND_TEXTURES, process.env.WEBHOOK_MODELS_AND_TEXTURES];
+const WEBHOOKS = [process.env.WEBHOOK_MODELS_AND_TEXTURES, process.env.WEBHOOK_HAMMER_AND_MISC];
 
 const CREDIT = {
 	DEFAULT: "Unknown, (Presumed Credit is Suggested)",
@@ -16,7 +16,7 @@ const CREDIT = {
 module.exports = {
 	data: new discordJS.SlashCommandBuilder()
 		.setName("create-resource")
-		.setDescription("Uploads given message to assets channel")
+		.setDescription("Uploads given a message to assets channel")
 		.addStringOption((option) =>
 			option.setName("message-id")
 				.setDescription("The message's ID")

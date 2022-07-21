@@ -1,4 +1,4 @@
-import { Client, Collection, IntentsBitField } from "discord.js";
+import * as discordJS from "discord.js";
 import { computeMetaHash } from "./meta_hash.js";
 import { print, TEXT_LEVEL } from "./print.js";
 import "dotenv/config";
@@ -12,7 +12,7 @@ print("Starting...", TEXT_LEVEL.SUCCESS);
 
 async function getCommands() {
 	//Get commands
-	const commandList = new Collection();
+	const commandList = new discordJS.Collection();
 	const commandFiles = fs.readdirSync(seg.COMMAND_LOCATION)
 		.filter(file => file.endsWith(".cjs"));
 
@@ -26,7 +26,13 @@ async function getCommands() {
 
 async function Main() {
 	//Create a new client instance
-	const client = new Client({ intents: [IntentsBitField.Flags.Guilds] });
+	const botIntents = [
+		1, //Does not work otherwise
+		Number(discordJS.PermissionFlagsBits.ReadMessageHistory),
+		Number(discordJS.PermissionFlagsBits.SendMessages),
+		Number(discordJS.PermissionFlagsBits.Connect)
+	];
+	const client = new discordJS.Client({ intents: botIntents });
 
 	//Get commands
 	client.commands = await getCommands();

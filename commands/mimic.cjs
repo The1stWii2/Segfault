@@ -11,7 +11,7 @@ module.exports = {
 		)
 };
 
-module.exports.execute = (interaction) => {
+module.exports.execute = async (interaction) => {
 	interaction.channel.send(interaction.options.getString("message"));
 	interaction.reply({ content: "Done!", ephemeral: true });
 };

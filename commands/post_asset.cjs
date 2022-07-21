@@ -18,27 +18,18 @@ module.exports = {
 		.setName("create-resource")
 		.setDescription("Uploads given a message to assets channel")
 		.addStringOption((option) =>
-			option.setName("message-id")
-				.setDescription("The message's ID")
+			option.setName("message")
+				.setDescription("The message's ID or link")
 				.setRequired(true)
 		) //TODO: Smart creation. For now only used for User ID
 		.addStringOption((option) =>
 			option.setName("asset-type")
 				.setDescription("The type of asset (channel to upload to)")
 				.addChoices(
-					{ name: "Hammer or Misc.", value: WEBHOOKS[0] },
-					{ name: "Model or Texture", value: WEBHOOKS[1] }
+					{ name: "Hammer or Misc.", value: "0" },
+					{ name: "Model or Texture", value: "1" },
+					{ name: "Dev", value: "3" }
 				)
-				.setRequired(true)
-		)
-		.addStringOption((option) =>
-			option.setName("title")
-				.setDescription("Title of asset")
-				.setRequired(true)
-		)
-		.addStringOption((option) =>
-			option.setName("description")
-				.setDescription("Description of asset")
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
@@ -47,9 +38,16 @@ module.exports = {
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
+			option.setName("title")
+				.setDescription("Title of asset")
+		)
+		.addStringOption((option) =>
+			option.setName("description")
+				.setDescription("Description of asset")
+		)
+		.addStringOption((option) =>
 			option.setName("includes") //TODO: Generate file tree.
 				.setDescription("Description of what is included")
-				.setRequired(true)
 		)
 		.addStringOption((option) =>
 			option.setName("credit")
@@ -70,6 +68,7 @@ module.exports = {
 };
 
 module.exports.execute = async (interaction, client) => {
+
 	const { print, TEXT_LEVEL } = await import("../print.js");
 
 	const userRoles = await interaction.member._roles;
@@ -81,10 +80,24 @@ module.exports.execute = async (interaction, client) => {
 
 	await interaction.deferReply({ ephemeral: true });
 
-	getMessage(interaction.options.getString("message-id"), client)
+	let messageID = interaction.options.getString("message");
+	if (isValidURL(messageID)) {
+		messageID = messageID.split("/");
+		messageID = messageID[messageID.length - 1];
+	}
+
+	getMessage(messageID, client)
 		.then(message => {
 
-			const webhookClient = new discordJS.WebhookClient({ url: "https://discord.com/api/webhooks/" + interaction.options.getString("asset-type") });
+			if (interaction.options.getString("asset-type") == "3") {
+
+				console.log(message);
+
+				interaction.editReply({ content: "This setting is for development purposes and does nothing otherwise!", ephemeral: true });
+				return;
+			}
+
+			const webhookClient = new discordJS.WebhookClient({ url: "https://discord.com/api/webhooks/" + WEBHOOKS[parseInt(interaction.options.getString("asset-type"))] });
 
 			const author = message.author.username;
 			const authorIcon = message.author.avatarURL();
@@ -95,6 +108,15 @@ module.exports.execute = async (interaction, client) => {
 			const credit = interaction.options.getString("credit") ? interaction.options.getString("credit") : CREDIT.DEFAULT;
 			const imageURL = interaction.options.getString("image") ? interaction.options.getString("image") : "";
 
+			if (!isValidURL(fileURL)) {
+				interaction.editReply({ content: "URL for file is invalid!", ephemeral: true });
+				return;
+			} else if (!isValidURL(imageURL) && imageURL != "") {
+				interaction.editReply({ content: "URL for image is invalid!", ephemeral: true });
+				return;
+			}
+
+			print("Posting embed...", TEXT_LEVEL.INFO);
 			const embed = generateEmbed(author, authorIcon, title, fileURL, description, includes, credit, imageURL);
 
 			webhookClient.send({ embeds: [embed] });
@@ -146,6 +168,18 @@ function generateEmbed(author, authorIcon, title, fileURL, description, includes
 	embed.setFooter({ text: "Click the title to download this item!", iconURL: "https://images.emojiterra.com/mozilla/512px/1f4be.png" });
 	embed.setTimestamp(null);
 	return embed;
+}
+
+function isValidURL(input) {
+	let url;
+
+	try {
+		url = new URL(input);
+	} catch (e) {
+		return false;
+	}
+
+	return url.protocol === "http:" || url.protocol === "https:";
 }
 
 function hasInCommon(arr1, arr2, minimum = 1, maximum = -1) {

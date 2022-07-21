@@ -85,6 +85,7 @@ async function Main() {
 		if (!command) return;
 
 		try {
+			print(interaction.user.username + " <@" + interaction.user.id + "> called command: " + String(interaction), TEXT_LEVEL.INFO);
 			await command.execute(interaction, client);
 		} catch (error) {
 			print(error, TEXT_LEVEL.ERROR, true);

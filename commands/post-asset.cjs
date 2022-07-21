@@ -70,10 +70,12 @@ module.exports = {
 };
 
 module.exports.execute = async (interaction, client) => {
+	const { print, TEXT_LEVEL } = await import("../print.js");
 
 	const userRoles = await interaction.member._roles;
 	if (!hasInCommon(userRoles, ALLOWED_ROLES)) {
 		interaction.reply({ content: "You do not have permission to use this command!", ephemeral: true });
+		print(interaction.user.username + " <@" + interaction.user.id + "> attempted to use create-resource command, but lacked privilege.", TEXT_LEVEL.WARN);
 		return;
 	}
 
@@ -101,10 +103,7 @@ module.exports.execute = async (interaction, client) => {
 
 		})
 		.catch(e => {
-			(async () => {
-				const { print, TEXT_LEVEL } = await import("../print.js");
-				print(e, TEXT_LEVEL.ERROR, true);
-			})();
+			print(e, TEXT_LEVEL.ERROR, true);
 			interaction.editReply({ content: "I do not have permission to read that message or it doesn't exist!", ephemeral: true });
 			return;
 		});

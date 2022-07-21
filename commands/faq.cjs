@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const fs = require("fs");
 
+const COMMAND_LOCATION = "./commands";
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -17,8 +18,11 @@ module.exports = {
 
 module.exports.execute = async (interaction) => {
 	const question = interaction.options.getString("question");
-	interaction.reply(await getAnswer(question));
-	//console.log(getQuestions());
+	const answer = await getAnswer(question);
+	if (answer)
+		interaction.reply(answer);
+	else
+		interaction.reply({ content: "No such question!", ephemeral: true });
 };
 
 //Get questions
@@ -26,7 +30,7 @@ function getQuestions() {
 	const commandChoices = [];
 
 	try {
-		const data = fs.readFileSync("qa.json", "utf8");
+		const data = fs.readFileSync(COMMAND_LOCATION + "/qa.json", "utf8");
 		const dataJSON = JSON.parse(data);
 
 		for (const key in dataJSON) {
@@ -48,7 +52,7 @@ function getQuestions() {
 //Get Answers
 async function getAnswer(inputKey) {
 	try {
-		const data = await fs.readFileSync("./qa.json", "utf8");
+		const data = await fs.readFileSync(COMMAND_LOCATION + "/qa.json", "utf8");
 		const dataJSON = JSON.parse(data);
 
 		for (const key in dataJSON) {

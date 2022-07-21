@@ -11,18 +11,17 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 //Constants
 const DELETE_COMMANDS_ON_UPDATE = false; //Used when removing commands.
+const COMMAND_LOCATION = "./commands";
 
 async function getCommands() {
 	//Get commands
 	const commandList = [];
-	const commandsPath = path.join(__dirname, "commands");
-	const commandFiles = fs.readdirSync(commandsPath)
+	const commandFiles = fs.readdirSync(COMMAND_LOCATION)
 		.filter(file => file.endsWith(".cjs"));
 
 	for (const file of commandFiles) {
-		const filePath = path.join(commandsPath, file);
-		print("Guild - Adding command: " + file, TEXT_LEVEL.DEBUG);
-		const command = await import("file://" + filePath); //HACK Import from string
+		print("Loading command: " + file, TEXT_LEVEL.DEBUG);
+		const command = await import(COMMAND_LOCATION + "/" + file);
 		commandList.push(command.data.toJSON());
 	}
 	return commandList;

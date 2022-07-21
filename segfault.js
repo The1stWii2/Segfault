@@ -13,6 +13,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SLASH_COMMAND_REPLY = 2;
 const SKIP_REGISTERING = false;
 const HASH_LOCATION = "./command_hash";
+const COMMAND_LOCATION = "./commands";
 
 //Start up
 print("\n\n\n");
@@ -21,14 +22,12 @@ print("Starting...", TEXT_LEVEL.SUCCESS);
 async function getCommands() {
 	//Get commands
 	const commandList = new Collection();
-	const commandsPath = path.join(__dirname, "commands");
-	const commandFiles = fs.readdirSync(commandsPath)
+	const commandFiles = fs.readdirSync(COMMAND_LOCATION)
 		.filter(file => file.endsWith(".cjs"));
 
 	for (const file of commandFiles) {
-		const filePath = path.join(commandsPath, file);
 		print("Loading command: " + file, TEXT_LEVEL.DEBUG);
-		const command = await import("file://" + filePath); //HACK Import from string
+		const command = await import(COMMAND_LOCATION + "/" + file);
 		commandList.set(command.data.name, command);
 	}
 	return commandList;

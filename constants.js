@@ -1,5 +1,4 @@
 
-export const SLASH_COMMAND_REPLY = 2; //Replace with Message Type enum
 export const SKIP_REGISTERING = 0; //1 - Don't update/add commands, 0 - Do as needed, -1 Force update
 export const HASH_LOCATION = "./command_hash";
 export const COMMAND_LOCATION = "./commands";

@@ -1,7 +1,7 @@
-const { SlashCommandBuilder } = require("discord.js");
+const discordJS = require("discord.js");
 
 module.exports = {
-	data: new SlashCommandBuilder()
+	data: new discordJS.SlashCommandBuilder()
 		.setName("server")
 		.setDescription("Replies with server info! (dummy command)")
 };

@@ -2,7 +2,7 @@ const discordJS = require("discord.js");
 require("dotenv").config();
 
 const ALLOWED_ROLES = ["324957515051696128", "876331576567406632"];
-const WEBHOOKS = [process.env.WEBHOOK_MODELS_AND_TEXTURES, process.env.WEBHOOK_HAMMER_AND_MISC];
+const WEBHOOKS = [process.env.WEBHOOK_HAMMER_AND_MISC, process.env.WEBHOOK_MODELS_AND_TEXTURES];
 
 const CREDIT = {
 	DEFAULT: "Unknown, (Presumed Credit is Suggested)",
@@ -33,17 +33,16 @@ module.exports = {
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
-			option.setName("url")
-				.setDescription("URL of file")
-				.setRequired(true)
-		)
-		.addStringOption((option) =>
 			option.setName("title")
 				.setDescription("Title of asset")
 		)
 		.addStringOption((option) =>
 			option.setName("description")
 				.setDescription("Description of asset")
+		)
+		.addStringOption((option) =>
+			option.setName("url")
+				.setDescription("URL of file")
 		)
 		.addStringOption((option) =>
 			option.setName("includes") //TODO: Generate file tree.
@@ -69,7 +68,9 @@ module.exports = {
 
 module.exports.execute = async (interaction, client) => {
 
-	const { print, TEXT_LEVEL } = await import("../print.js");
+	const { print, TEXT_LEVEL } = await import("../lib/print.js");
+	const linkHandler = await import("../lib/link_handler.js");
+	const messHandler = await import("../lib/message_handler.js");
 
 	const userRoles = await interaction.member._roles;
 	if (!hasInCommon(userRoles, ALLOWED_ROLES)) {
@@ -80,44 +81,78 @@ module.exports.execute = async (interaction, client) => {
 
 	await interaction.deferReply({ ephemeral: true });
 
-	let messageID = interaction.options.getString("message");
-	if (isValidURL(messageID)) {
-		messageID = messageID.split("/");
-		messageID = messageID[messageID.length - 1];
-	}
+	const messageID = await messHandler.convertLink(interaction.options.getString("message"));
 
-	getMessage(messageID, client)
+	await messHandler.getMessage(messageID, client)
 		.then(message => {
 
 			if (interaction.options.getString("asset-type") == "3") {
 
-				console.log(message);
+				console.log(message.content);
 
 				interaction.editReply({ content: "This setting is for development purposes and does nothing otherwise!", ephemeral: true });
-				return;
+				//return;
 			}
 
 			const webhookClient = new discordJS.WebhookClient({ url: "https://discord.com/api/webhooks/" + WEBHOOKS[parseInt(interaction.options.getString("asset-type"))] });
 
+			//Automatically generate text
+			const messageContent = message.content;
+			print("Got message: " + messageContent, TEXT_LEVEL.DEBUG);
+
+			const includesPattern = /(?:^include(?:s|)(?::|)(?: |)(?:\r?\n|))/gim;
+			const creditPattern = /(?:^credit(?:s|)(?::|)(?: |))/gim;
+
+			const includesAndPerhapsCredits = messageContent.split(includesPattern);
+			let description = includesAndPerhapsCredits.shift();
+			let title = description.split("\n").shift();
+			description = description.split("\n");
+			description.shift();
+			description = description.join("\n");
+
+			let credits = includesAndPerhapsCredits.join().split(creditPattern);
+			let includes = credits.shift().split("```").join("");
+			//If credits is empty, either it wasn't after includes or it doesn't exist
+			credits = credits.pop();
+			if (credits == "" || credits == undefined) {
+				credits = messageContent.split(creditPattern, 2);
+				credits = credits.pop().split("\n").shift();
+			}
+
+			const attachments = message.attachments;
+			let fileURL = getProbableFileAttachment(attachments).url;
+
+			//Manually override param if set
+			if (interaction.options.getString("title") != null)
+				title = interaction.options.getString("title");
+			if (interaction.options.getString("description") != null)
+				description = interaction.options.getString("description");
+			if (interaction.options.getString("includes") != null)
+				includes = interaction.options.getString("includes");
+			if (interaction.options.getString("credit") != null)
+				credits = interaction.options.getString("credit");
+			if (credits == "")
+				credits = CREDIT.DEFAULT;
+			if (interaction.options.getString("url") != null)
+				fileURL = interaction.options.getString("url");
+
+			//Read everything else
 			const author = message.author.username;
 			const authorIcon = message.author.avatarURL();
-			const title = interaction.options.getString("title");
-			const fileURL = interaction.options.getString("url");
-			const description = interaction.options.getString("description");
-			const includes = interaction.options.getString("includes");
-			const credit = interaction.options.getString("credit") ? interaction.options.getString("credit") : CREDIT.DEFAULT;
 			const imageURL = interaction.options.getString("image") ? interaction.options.getString("image") : "";
 
-			if (!isValidURL(fileURL)) {
+			if (!linkHandler.isValidURL(fileURL)) {
+				console.log(fileURL);
 				interaction.editReply({ content: "URL for file is invalid!", ephemeral: true });
 				return;
-			} else if (!isValidURL(imageURL) && imageURL != "") {
+			} else if (!linkHandler.isValidURL(imageURL) && imageURL != "") {
 				interaction.editReply({ content: "URL for image is invalid!", ephemeral: true });
 				return;
 			}
 
-			print("Posting embed...", TEXT_LEVEL.INFO);
-			const embed = generateEmbed(author, authorIcon, title, fileURL, description, includes, credit, imageURL);
+			const embed = generateEmbed(author, authorIcon, title, fileURL, description, includes, credits, imageURL);
+
+			print("Posting embed...\n" + embed, TEXT_LEVEL.INFO);
 
 			webhookClient.send({ embeds: [embed] });
 
@@ -130,25 +165,6 @@ module.exports.execute = async (interaction, client) => {
 			return;
 		});
 };
-
-async function getMessage(id, client) {
-
-	const { print, TEXT_LEVEL } = await import("../print.js");
-
-	for (const channel of client.channels.cache) {
-		if (!(channel[1] instanceof discordJS.TextChannel))
-			continue;
-		try {
-			const message = await channel[1].messages.fetch(id);
-			print("Message found in " + channel[1].name, TEXT_LEVEL.DEBUG);
-			return message;
-		} catch (e) {
-			print("Could not find message in " + channel[1].name, TEXT_LEVEL.DEBUG);
-		}
-	}
-
-	throw ReferenceError("No such message");
-}
 
 function generateEmbed(author, authorIcon, title, fileURL, description, includes, credit, imageURL) {
 	const embed = new discordJS.EmbedBuilder();
@@ -170,18 +186,6 @@ function generateEmbed(author, authorIcon, title, fileURL, description, includes
 	return embed;
 }
 
-function isValidURL(input) {
-	let url;
-
-	try {
-		url = new URL(input);
-	} catch (e) {
-		return false;
-	}
-
-	return url.protocol === "http:" || url.protocol === "https:";
-}
-
 function hasInCommon(arr1, arr2, minimum = 1, maximum = -1) {
 	let inCommon = 0;
 	for (const element1 of arr1) {
@@ -191,4 +195,21 @@ function hasInCommon(arr1, arr2, minimum = 1, maximum = -1) {
 		}
 	}
 	return ((inCommon >= minimum) && (inCommon <= maximum || maximum < 0));
+}
+
+function getProbableFileAttachment(attachments) {
+	const validAttachments = [
+		"application/zip",
+		"application/rar",
+		"application/x-7z-compressed"
+	];
+
+	let validAttachment = null;
+
+	attachments.forEach(attachment => {
+		if (validAttachments.includes(attachment.contentType))
+			validAttachment = attachment;
+	});
+
+	return validAttachment;
 }

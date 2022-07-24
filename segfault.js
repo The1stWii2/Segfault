@@ -1,6 +1,7 @@
 import * as discordJS from "discord.js";
+import * as discordAPI from "discord-api-types/v9";
 import { computeMetaHash } from "./meta_hash.js";
-import { print, TEXT_LEVEL } from "./print.js";
+import { print, TEXT_LEVEL } from "./lib/print.js";
 import "dotenv/config";
 import fs from "fs";
 
@@ -27,10 +28,16 @@ async function getCommands() {
 async function Main() {
 	//Create a new client instance
 	const botIntents = [
-		1, //Does not work otherwise
-		Number(discordJS.PermissionFlagsBits.ReadMessageHistory),
-		Number(discordJS.PermissionFlagsBits.SendMessages),
-		Number(discordJS.PermissionFlagsBits.Connect)
+		1 << 0, //GUILDS
+		1 << 5, //GUILD_WEBHOOKS
+		1 << 9, //GUILD_MESSAGES
+		1 << 10, //GUILD_MESSAGE_REACTIONS
+		1 << 11, //GUILD_MESSAGE_TYPING
+		1 << 12, //DIRECT_MESSAGES
+		1 << 13, //DIRECT_MESSAGE_REACTIONS
+		1 << 14, //DIRECT_MESSAGE_TYPING
+		1 << 15, //MESSAGE_CONTENT
+		1 << 16, //GUILD_SCHEDULED_EVENTS
 	];
 	const client = new discordJS.Client({ intents: botIntents });
 
@@ -82,21 +89,44 @@ async function Main() {
 
 
 	client.on("interactionCreate", async interaction => {
-		if (interaction.type != seg.SLASH_COMMAND_REPLY) return;
+		console.log(discordAPI.InteractionType.SLASH_COMMAND_REPLY);
+		switch (interaction.type) {
+		case (discordAPI.InteractionType.ApplicationCommand): {
+			//Slash Command
+			print("Received interaction: " + String(interaction), TEXT_LEVEL.DEBUG);
 
-		print("Received interaction: " + String(interaction), TEXT_LEVEL.DEBUG);
+			const command = client.commands.get(interaction.commandName);
+			if (!command) return;
 
-		const command = client.commands.get(interaction.commandName);
-
-		if (!command) return;
-
-		try {
-			print(interaction.user.username + " <@" + interaction.user.id + "> called command: " + String(interaction), TEXT_LEVEL.INFO);
-			await command.execute(interaction, client);
-		} catch (error) {
-			print(error, TEXT_LEVEL.ERROR, true);
-			await interaction.reply({ content: "There was an error while executing this command!", ephemeral: true });
+			try {
+				print(interaction.user.username + " <@" + interaction.user.id + "> called command: " + String(interaction), TEXT_LEVEL.INFO);
+				await command.execute(interaction, client);
+			} catch (error) {
+				print(error, TEXT_LEVEL.ERROR, true);
+				if (interaction.deferred)
+					await interaction.reply({ content: "There was an error while executing this command!", ephemeral: true });
+			}
+			break;
 		}
+		case (discordAPI.InteractionType.ModalSubmit): {
+			//Modal Response
+			print("Received response about model: " + String(interaction.customId), TEXT_LEVEL.DEBUG);
+
+			const command = client.commands.get(interaction.customId);
+			if (!command) return;
+
+			try {
+				print(interaction.user.username + " <@" + interaction.user.id + "> finished modal: " + String(interaction.customId), TEXT_LEVEL.INFO);
+				await command.process(interaction, client);
+			} catch (error) {
+				print(error, TEXT_LEVEL.ERROR, true);
+				if (interaction.deferred)
+					await interaction.reply({ content: "There was an error while executing processing modal!", ephemeral: true });
+			}
+			break;
+		}
+		}
+		return;
 	});
 
 

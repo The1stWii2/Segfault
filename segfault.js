@@ -1,15 +1,16 @@
 import * as discordJS from "discord.js";
-import * as discordAPI from "discord-api-types/v9";
+import * as discordAPI from "discord-api-types/v10";
 import { computeMetaHash } from "./meta_hash.js";
 import { print, TEXT_LEVEL } from "./lib/print.js";
 import "dotenv/config";
 import fs from "fs";
 
-import * as seg from "./constants.js";
+import * as seg from "./constants.cjs";
 
 //Start up
 print("\n\n\n");
 print("Starting...", TEXT_LEVEL.SUCCESS);
+console.log(seg.WEBHOOKS);
 
 async function getCommands() {
 	//Get commands
@@ -28,16 +29,16 @@ async function getCommands() {
 async function Main() {
 	//Create a new client instance
 	const botIntents = [
-		1 << 0, //GUILDS
-		1 << 5, //GUILD_WEBHOOKS
-		1 << 9, //GUILD_MESSAGES
-		1 << 10, //GUILD_MESSAGE_REACTIONS
-		1 << 11, //GUILD_MESSAGE_TYPING
-		1 << 12, //DIRECT_MESSAGES
-		1 << 13, //DIRECT_MESSAGE_REACTIONS
-		1 << 14, //DIRECT_MESSAGE_TYPING
-		1 << 15, //MESSAGE_CONTENT
-		1 << 16, //GUILD_SCHEDULED_EVENTS
+		discordAPI.GatewayIntentBits.Guilds,
+		discordAPI.GatewayIntentBits.GuildWebhooks,
+		discordAPI.GatewayIntentBits.GuildMessages,
+		discordAPI.GatewayIntentBits.GuildMessageReactions,
+		discordAPI.GatewayIntentBits.GuildMessageTyping,
+		discordAPI.GatewayIntentBits.DirectMessages,
+		discordAPI.GatewayIntentBits.DirectMessageReactions,
+		discordAPI.GatewayIntentBits.DirectMessageTyping,
+		discordAPI.GatewayIntentBits.MessageContent,
+		discordAPI.GatewayIntentBits.GuildScheduledEvents,
 	];
 	const client = new discordJS.Client({ intents: botIntents });
 

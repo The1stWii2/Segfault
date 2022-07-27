@@ -1,8 +1,9 @@
 const discordJS = require("discord.js");
 require("dotenv").config();
+const seg = require("../constants.cjs");
 
 const ALLOWED_ROLES = ["324957515051696128", "876331576567406632"];
-const WEBHOOKS = [process.env.WEBHOOK_HAMMER_AND_MISC, process.env.WEBHOOK_MODELS_AND_TEXTURES];
+
 
 const CREDIT = {
 	DEFAULT: "Unknown, (Presumed Credit is Suggested)",
@@ -21,14 +22,12 @@ module.exports = {
 			option.setName("message")
 				.setDescription("The message's ID or link")
 				.setRequired(true)
-		) //TODO: Smart creation. For now only used for User ID
+		)
 		.addStringOption((option) =>
 			option.setName("asset-type")
 				.setDescription("The type of asset (channel to upload to)")
 				.addChoices(
-					{ name: "Hammer or Misc.", value: "0" },
-					{ name: "Model or Texture", value: "1" },
-					{ name: "Dev", value: "3" }
+					...seg.WEBHOOKS
 				)
 				.setRequired(true)
 		)
@@ -86,15 +85,7 @@ module.exports.execute = async (interaction, client) => {
 	await messHandler.getMessage(messageID, client)
 		.then(message => {
 
-			if (interaction.options.getString("asset-type") == "3") {
-
-				console.log(message.content);
-
-				interaction.editReply({ content: "This setting is for development purposes and does nothing otherwise!", ephemeral: true });
-				//return;
-			}
-
-			const webhookClient = new discordJS.WebhookClient({ url: "https://discord.com/api/webhooks/" + WEBHOOKS[parseInt(interaction.options.getString("asset-type"))] });
+			const webhookClient = new discordJS.WebhookClient({ url: "https://discord.com/api/webhooks/" + getWebhook(interaction.options.getString("asset-type")) });
 
 			//Automatically generate text
 			const messageContent = message.content;
@@ -120,7 +111,9 @@ module.exports.execute = async (interaction, client) => {
 			}
 
 			const attachments = message.attachments;
-			let fileURL = getProbableFileAttachment(attachments).url;
+			let fileURL = getProbableFileAttachment(attachments);
+			if (fileURL != null)
+				fileURL = fileURL.url;
 
 			//Manually override param if set
 			if (interaction.options.getString("title") != null)
@@ -212,4 +205,12 @@ function getProbableFileAttachment(attachments) {
 	});
 
 	return validAttachment;
+}
+
+function getWebhook(webhookName) {
+	for (const item of seg.WEBHOOKS) {
+		if (item.name == webhookName)
+			return item.address;
+	}
+	throw ReferenceError("No Such Webhook!");
 }

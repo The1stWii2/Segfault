@@ -4,7 +4,7 @@ import { print, TEXT_LEVEL } from "./lib/print.js";
 import "dotenv/config";
 import fs from "fs";
 
-import * as seg from "./constants.js";
+import * as seg from "./constants.cjs";
 
 //Constants
 
@@ -22,7 +22,7 @@ async function getCommands() {
 	return commandList;
 }
 
-const GUILDS = [process.env.DEV_GUILD_ID, process.env.GUILD_ID];
+//const GUILDS = [process.env.DEV_GUILD_ID, process.env.GUILD_ID];
 
 const rest = new REST({ version: "9" }).setToken(process.env.DISCORD_TOKEN);
 

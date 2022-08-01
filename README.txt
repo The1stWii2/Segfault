@@ -1,7 +1,3 @@
-Recommended process manager: pm2
-
-pm2 start segfault.js --watch
-
 See package.json for dependencies.
 
 Bot creates a log.txt in same directory as execution.

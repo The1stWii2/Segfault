@@ -10,7 +10,6 @@ import * as seg from "./constants.cjs";
 //Start up
 print("\n\n\n");
 print("Starting...", TEXT_LEVEL.SUCCESS);
-console.log(seg.WEBHOOKS);
 
 async function getCommands() {
 	//Get commands
@@ -68,7 +67,7 @@ async function Main() {
 			print("Command registration may be delayed.", TEXT_LEVEL.INFO);
 			await import("./register_commands.js");
 		} else {
-			print("Skipping registering commands per rule.", TEXT_LEVEL.INFO);
+			print("Skipping command registration per rule.", TEXT_LEVEL.INFO);
 		}
 
 		//Update Hash
@@ -79,7 +78,7 @@ async function Main() {
 			throw e;
 		}
 	} else {
-		print("Skipping registering commands.", TEXT_LEVEL.INFO);
+		print("Skipping command registration.", TEXT_LEVEL.INFO);
 	}
 
 	//When the client is ready, run this code (only once)
@@ -90,7 +89,6 @@ async function Main() {
 
 
 	client.on("interactionCreate", async interaction => {
-		console.log(discordAPI.InteractionType.SLASH_COMMAND_REPLY);
 		switch (interaction.type) {
 		case (discordAPI.InteractionType.ApplicationCommand): {
 			//Slash Command

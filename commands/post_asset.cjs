@@ -91,7 +91,7 @@ module.exports.execute = async (interaction, client) => {
 			const messageContent = message.content;
 			print("Got message: " + messageContent, TEXT_LEVEL.DEBUG);
 
-			const includesPattern = /(?:^include(?:s|)(?::|)(?: |)(?:\r?\n|))/gim;
+			const includesPattern = /(?:^(?:include|content)(?:s|)(?::|)(?: |)(?:\r?\n|))/gim;
 			const creditPattern = /(?:^credit(?:s|)(?::|)(?: |))/gim;
 
 			const includesAndPerhapsCredits = messageContent.split(includesPattern);
@@ -135,8 +135,7 @@ module.exports.execute = async (interaction, client) => {
 			const imageURL = interaction.options.getString("image") ? interaction.options.getString("image") : "";
 
 			if (!linkHandler.isValidURL(fileURL)) {
-				console.log(fileURL);
-				interaction.editReply({ content: "URL for file is invalid!", ephemeral: true });
+				interaction.editReply({ content: "URL for file (" + fileURL + ") is invalid!", ephemeral: true });
 				return;
 			} else if (!linkHandler.isValidURL(imageURL) && imageURL != "") {
 				interaction.editReply({ content: "URL for image is invalid!", ephemeral: true });
@@ -145,8 +144,7 @@ module.exports.execute = async (interaction, client) => {
 
 			const embed = generateEmbed(author, authorIcon, title, fileURL, description, includes, credits, imageURL);
 
-			print("Posting embed...\n" + embed, TEXT_LEVEL.INFO);
-
+			print("Posting embed...\n", TEXT_LEVEL.INFO);
 			webhookClient.send({ embeds: [embed] });
 
 			interaction.editReply({ content: "Done!", ephemeral: true });

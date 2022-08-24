@@ -14,6 +14,17 @@ module.exports = {
 
 module.exports.execute = async (interaction) => {
 
-	interaction.channel.send(interaction.options.getString("message"));
+	const LENGTH = 20;
+
+	let message = interaction.options.getString("message");
+
+	if (message.length > LENGTH) {
+		message = message.substring(0, LENGTH - 3);
+		while (/(?:[\W]|[<>()[\]{}])/.match(message.substring[message.length - 1]))
+			message = message.substring(0, message.length - 1);
+		message = message += "...";
+	}
+
+	interaction.channel.send(message);
 	interaction.reply({ content: "Done!", ephemeral: true });
 };

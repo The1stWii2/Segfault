@@ -11,10 +11,7 @@ import path from "path";
 //and the digest will be returned to you in a Buffer object
 //-----------------------------------------------------
 
-export async function computeMetaHash(
-  folder: string,
-  inputHash: Hash | null = null
-): Promise<void | Buffer> {
+export async function computeMetaHash(folder: string, inputHash: Hash | null = null): Promise<void | Buffer> {
   const hash = inputHash ? inputHash : createHash("sha256");
   const info = await fsp.readdir(folder, { withFileTypes: true });
   //construct a string from the modification date, the filename and the filesize

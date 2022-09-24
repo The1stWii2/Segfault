@@ -19,10 +19,7 @@ const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
 class Bot extends discordJS.Client {
   private _commands: discordJS.Collection<string, ISlashCommand>;
 
-  constructor(params: {
-    options: discordJS.ClientOptions;
-    commands: discordJS.Collection<string, ISlashCommand>;
-  }) {
+  constructor(params: { options: discordJS.ClientOptions; commands: discordJS.Collection<string, ISlashCommand> }) {
     super(params.options);
 
     this._commands = params.commands;
@@ -37,15 +34,11 @@ class Bot extends discordJS.Client {
  *
  * @returns Promise of collection `<name, ICommand>`
  */
-async function getCommands(): Promise<
-  discordJS.Collection<string, ISlashCommand>
-> {
+async function getCommands(): Promise<discordJS.Collection<string, ISlashCommand>> {
   //Get commands
   const commandList = new discordJS.Collection();
   //const commandFiles = fs.readdirSync(APP_CONSTANTS.COMMAND_LOCATION);
-  const commandFiles = fs.readdirSync(
-    path.join(__dirname, APP_CONSTANTS.COMMAND_LOCATION)
-  );
+  const commandFiles = fs.readdirSync(path.join(__dirname, APP_CONSTANTS.COMMAND_LOCATION));
 
   //Only include ts files, (eg, drop .json files)
   commandFiles.filter((file) => file.endsWith(".ts"));
@@ -53,9 +46,7 @@ async function getCommands(): Promise<
   for (const file of commandFiles) {
     console.log("Loading command: " + file);
 
-    const command = (await import(
-      path.join(__dirname, APP_CONSTANTS.COMMAND_LOCATION, file)
-    )) as ISlashCommand;
+    const command = (await import(path.join(__dirname, APP_CONSTANTS.COMMAND_LOCATION, file))) as ISlashCommand;
 
     commandList.set(command.slashCommand.name, command);
   }
@@ -65,22 +56,16 @@ async function getCommands(): Promise<
 
 async function regCommands(commandList: SlashCommandBuilder[]) {
   //Check whether we need to update commands
-  const currentHash = (await computeMetaHash(
-    path.join(__dirname, APP_CONSTANTS.COMMAND_LOCATION)
-  )) as Buffer;
+  const currentHash = (await computeMetaHash(path.join(__dirname, APP_CONSTANTS.COMMAND_LOCATION))) as Buffer;
   console.log("Current hash for commands is: ", currentHash.readBigInt64LE(0));
 
   //Find previous hash, if it exists
-  const prevHash = (await fs.promises
-    .readFile(APP_CONSTANTS.HASH_LOCATION)
-    .catch((error: NodeJS.ErrnoException) => {
-      if (error?.code == "ENOENT")
-        console.log("No previous command hash exists, one will be created.");
-    })) as Buffer;
+  const prevHash = (await fs.promises.readFile(APP_CONSTANTS.HASH_LOCATION).catch((error: NodeJS.ErrnoException) => {
+    if (error?.code == "ENOENT") console.log("No previous command hash exists, one will be created.");
+  })) as Buffer;
 
   //If prevHash does exist, print it
-  if (prevHash)
-    console.log("Previous hash for commands is: ", prevHash.readBigInt64LE(0));
+  if (prevHash) console.log("Previous hash for commands is: ", prevHash.readBigInt64LE(0));
 
   //Compare hashes.
   if (
@@ -155,18 +140,12 @@ async function main() {
         console.log("Received interaction: " + String(interaction));
 
         //Get which command to execute.
-        const command = client.commands.get(
-          interaction.commandName
-        ) as ISlashCommand;
+        const command = client.commands.get(interaction.commandName) as ISlashCommand;
         if (!command) return;
 
         try {
           console.log(
-            interaction.user.username +
-              " <@" +
-              interaction.user.id +
-              "> called command: " +
-              String(interaction)
+            interaction.user.username + " <@" + interaction.user.id + "> called command: " + String(interaction)
           );
 
           //Attempt to execute command

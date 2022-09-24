@@ -1,16 +1,7 @@
-import {
-  Client,
-  ClientOptions,
-  Collection,
-  CommandInteraction,
-  SlashCommandBuilder,
-} from "discord.js";
+import { Client, ClientOptions, Collection, CommandInteraction, SlashCommandBuilder } from "discord.js";
 
 export class bot extends Client {
-  constructor(params: {
-    options: ClientOptions;
-    commands: Collection<string, ISlashCommand>;
-  });
+  constructor(params: { options: ClientOptions; commands: Collection<string, ISlashCommand> });
 
   get commands(): Collection<string, ISlashCommand>;
 }

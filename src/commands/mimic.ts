@@ -6,10 +6,7 @@ const command = {
     .setName("mimic")
     .setDescription("Makes the bot say something")
     .addStringOption((option) =>
-      option
-        .setName("message")
-        .setDescription("What to make the bot say")
-        .setRequired(true)
+      option.setName("message").setDescription("What to make the bot say").setRequired(true)
     ),
   execute: async (interaction: ChatInputCommandInteraction) => {
     const message: string = interaction.options.getString("message")!;

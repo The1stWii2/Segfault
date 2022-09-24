@@ -2,20 +2,26 @@
   "name": "segfault",
   "version": "1.0.0",
   "description": "",
-  "main": "segfault.js",
-  "type": "module",
+  "main": "segfault.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "run": "ts-node ./src/segfault.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@discordjs/builders": "^1.0.0",
     "@discordjs/rest": "^1.0.0",
-    "chalk": "^5.0.1",
     "discord-api-types": "^0.36.2",
     "discord.js": "^14.0.3",
-    "dotenv": "^16.0.1",
-    "eslint": "^8.20.0"
+    "dotenv": "^16.0.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.38.0",
+    "@typescript-eslint/parser": "^5.38.0",
+    "eslint": "^8.23.1",
+    "eslint-config-prettier": "^8.5.0",
+    "prettier": "^2.7.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.3"
   }
 }
